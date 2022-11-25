@@ -1,16 +1,35 @@
+import { parseInput } from '../utils/input';
 import { logAnswer } from '../utils/logging';
-import { calculateFuelForMass, day1 } from './day1';
+import { day1, day1part2 } from './day1';
 import { data } from './day1.data';
 
-test('Provided test cases', () => {
-  expect(calculateFuelForMass(12)).toBe(2);
-  expect(calculateFuelForMass(14)).toBe(2);
-  expect(calculateFuelForMass(1969)).toBe(654);
-  expect(calculateFuelForMass(100756)).toBe(33583);
+const testString = 'R5, L5, R5, R3';
+const testString2 = 'R8, R4, R4, R8'
+const testData = parseInput(testString);
+const testData2 = parseInput(testString2);
+
+describe('day 1', () => {
+  it('test cases', () => {
+    expect(day1(testData)).toBe(12);
+  });
+
+  it('answer', () => {
+    const answer = day1(data);
+    logAnswer(answer, 1, 1);
+    expect(typeof answer).toBe('number');
+    expect(answer).toBe(243);
+  });
 });
 
-test('Returns an answer', () => {
-  logAnswer(day1(data));
-  expect(typeof day1(data)).toBe('number');
-  expect(day1(data)).toBeGreaterThan(0);
+describe('day 1 part 2', () => {
+  it('test cases', () => {
+    expect(day1part2(testData2)).toBe(4);
+  });
+
+  it('answer', () => {
+    const answer = day1part2(data);
+    logAnswer(answer, 1, 2);
+    expect(typeof answer).toBe('number');
+    expect(answer).toBe(142);
+  });
 });
