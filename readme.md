@@ -3,6 +3,7 @@
 Attempt at [Advent Of Code 2016](https://adventofcode.com/2016) written in Typescript with the following aims:
 
 - Quick time to finish part 2 after solving part 1
+- Less focus on clean code than other years
 
 ---
 
