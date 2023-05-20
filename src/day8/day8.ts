@@ -1,10 +1,4 @@
-import {
-  countValueInGrid,
-  genNewGrid,
-  GridInfo,
-  printGrid,
-  runFnOnGrid,
-} from '../utils/grid';
+import { Grid } from '../utils/grid';
 
 type Instruction = {
   isRect: boolean;
@@ -35,56 +29,40 @@ const parseInstruction = (instruction: string): Instruction => {
   };
 };
 
-const runInstruction = (
-  gridInfo: GridInfo<string>,
-  instruction: Instruction,
-) => {
-  const { numRows, numCols } = gridInfo;
+const runInstruction = (grid: Grid<string>, instruction: Instruction) => {
   const { isRect, width, height, isRotate, type, index, shift } = instruction;
+  const newGrid = grid.createDeepCopy();
   if (isRect) {
-    return runFnOnGrid({
-      gridInfo,
-      fnToRun: ({ coords: { x, y }, value }) => {
-        if (x < height && y < width) return '#';
-        return value;
-      },
+    newGrid.runSettingFn(({ coords: { x, y }, value }) => {
+      if (x < height && y < width) return '#';
+      return value;
     });
   } else if (isRotate && type === 'row') {
-    return runFnOnGrid({
-      gridInfo,
-      fnToRun: ({ coords: { x, y }, value, grid }) => {
-        if (x === index) return grid[x][(y - shift + numCols) % numCols];
-        return value;
-      },
+    newGrid.runSettingFn(({ coords: { x, y }, value }) => {
+      if (x === index) return grid.get(grid.loopCoords({ x, y: y - shift }));
+      return value;
     });
   } else if (isRotate && type === 'column') {
-    return runFnOnGrid({
-      gridInfo,
-      fnToRun: ({ coords: { x, y }, value, grid }) => {
-        if (y === index) return grid[(x - shift + numRows) % numRows][y];
-        return value;
-      },
+    newGrid.runSettingFn(({ coords: { x, y }, value }) => {
+      if (y === index) return grid.get(grid.loopCoords({ x: x - shift, y }));
+      return value;
     });
   }
-  return gridInfo;
+  return newGrid;
 };
 
 const runAllInstructions = (input: string[]) => {
-  const initialGridInfo = genNewGrid({
-    numRows: 6,
-    numCols: 50,
-    defaultValue: '.',
-  });
+  const initialGrid = new Grid(6, 50, '.');
   const instructions = input.map(parseInstruction);
-  return instructions.reduce(runInstruction, initialGridInfo);
+  return instructions.reduce(runInstruction, initialGrid);
 };
 
 export const day8 = (input: string[]) => {
-  const finalGridInfo = runAllInstructions(input);
-  return countValueInGrid(finalGridInfo, '#');
+  const finalGrid = runAllInstructions(input);
+  return finalGrid.countValueInGrid('#');
 };
 
 export const day8part2 = (input: string[]) => {
-  const finalGridInfo = runAllInstructions(input);
-  return printGrid(finalGridInfo);
+  const finalGrid = runAllInstructions(input);
+  return finalGrid.print();
 };
