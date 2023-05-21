@@ -5,7 +5,7 @@ import { range } from '../utils/looping';
 type GridValue = { used: number; avail: number };
 type NodeInfo = { grid: Grid<GridValue>; numRows: number; numCols: number };
 type Pair = { a: Coords; b: Coords };
-type State = { nodeInfo: NodeInfo; targetData: Coords };
+type State = { nodeInfo: NodeInfo; targetData: Coords; targetMoves: number };
 
 type Global = { minFound: number };
 type StateD = { nodeInfo: NodeInfo; targetData: Coords; steps: number };
@@ -81,8 +81,13 @@ const bfsMoveData = (states: State[], steps: number): number => {
   )
     return steps;
 
+  const maxTargetMoves = maxArr(states, (state) => state.targetMoves);
+  const filteredStates = states.filter(
+    (state) => state.targetMoves >= maxTargetMoves - 10,
+  );
+
   const newStates: State[] = [];
-  states.forEach((state) => {
+  filteredStates.forEach((state) => {
     const pairs = getMovablePairs(state.nodeInfo);
     pairs.forEach(({ a, b }) => {
       const newGrid = state.nodeInfo.grid.createDeepCopy();
@@ -93,13 +98,16 @@ const bfsMoveData = (states: State[], steps: number): number => {
         used: oldB.used + oldA.used,
         avail: oldB.avail - oldA.used,
       });
-      const targetData =
-        state.targetData.x === a.x && state.targetData.y === a.y
-          ? b
-          : state.targetData;
+      const isMovingTarget =
+        state.targetData.x === a.x && state.targetData.y === a.y;
+      const targetData = isMovingTarget ? b : state.targetData;
+      const targetMoves = isMovingTarget
+        ? state.targetMoves + 1
+        : state.targetMoves;
       newStates.push({
         nodeInfo: { ...state.nodeInfo, grid: newGrid },
         targetData,
+        targetMoves,
       });
     });
   });
@@ -127,10 +135,9 @@ const dfsMoveData = (state: StateD, global: Global): void => {
       used: oldB.used + oldA.used,
       avail: oldB.avail - oldA.used,
     });
-    const targetData =
-      state.targetData.x === a.x && state.targetData.y === a.y
-        ? b
-        : state.targetData;
+    const isMovingTarget =
+      state.targetData.x === a.x && state.targetData.y === a.y;
+    const targetData = isMovingTarget ? b : state.targetData;
     const newState: StateD = {
       nodeInfo: { ...state.nodeInfo, grid: newGrid },
       targetData,
@@ -141,7 +148,16 @@ const dfsMoveData = (state: StateD, global: Global): void => {
 };
 
 const getMinStepsToMove = (nodeInfo: NodeInfo): number =>
-  bfsMoveData([{ nodeInfo, targetData: { x: nodeInfo.numRows - 1, y: 0 } }], 0);
+  bfsMoveData(
+    [
+      {
+        nodeInfo,
+        targetData: { x: nodeInfo.numRows - 1, y: 0 },
+        targetMoves: 0,
+      },
+    ],
+    0,
+  );
 
 const getMinStepsToMove2 = (nodeInfo: NodeInfo): number => {
   const global = { minFound: 1000 };
@@ -160,5 +176,5 @@ export const day22 = (input: string[]) => {
 
 export const day22part2 = (input: string[]) => {
   const nodeInfo = parseNodes(input);
-  return getMinStepsToMove2(nodeInfo);
+  return getMinStepsToMove(nodeInfo);
 };
